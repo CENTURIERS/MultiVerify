@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Biometrics project data (large media files)
+data/users/**/*.jpg
+data/users/**/*.png
+data/users/**/*.wav
+data/users/**/*.mp3
+data/users/**/*.npy
+
