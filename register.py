@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from src.modalities.face.face_modality import FaceModality
 from src.modalities.voice.voice_modality import VoiceModality
@@ -48,10 +49,16 @@ def register_user(username):
         print(f"  Przetworzono: {voice_file}")
 
     print(f"\nZarejestrowano {username}: {len(face_features)} wzorców twarzy, {len(voice_features)} wzorców głosu.")
-    print("(Na razie to stuby — prawdziwe embeddingi pojawią się po implementacji Kamila)\n")
 
-    # Kamil: tutaj w przyszłości zapis embeddingów do plików .npy
-    # np. np.save(os.path.join(user_dir, "face_embeddings.npy"), face_features)
+    if len(face_features) > 0:
+        np.save(os.path.join(user_dir, "face_embeddings.npy"), np.array(face_features))
+        print("Zapisano embeddingi twarzy: face_embeddings.npy")
+
+    if len(voice_features) > 0:
+        np.save(os.path.join(user_dir, "voice_embeddings.npy"), np.array(voice_features))
+        print("Zapisano embeddingi głosu: voice_embeddings.npy")
+
+    print()
 
     return {"face_features": face_features, "voice_features": voice_features}
 

@@ -1,10 +1,24 @@
 import os
+import numpy as np
 
 from src.modalities.face.face_modality import FaceModality
 from src.modalities.voice.voice_modality import VoiceModality
 from src.fusion.fusion_engine import FusionEngine
 
 USERS_DIR = "data/users"
+
+def best_score(system, new_features, saved_features):
+    """
+    Porownuje nowe cechy z kilkoma wzorcami i bierze najlepszy wynik.
+    """
+    scores = []
+    for features in saved_features:
+        scores.append(system.verify(new_features, features))
+
+    if len(scores) == 0:
+        return 0.0
+
+    return max(scores)
 
 def identify(face_file, voice_file):
     """
@@ -37,23 +51,36 @@ def identify(face_file, voice_file):
     for username in users:
         user_dir = os.path.join(USERS_DIR, username)
 
-        # Szukamy zdjec i nagran tego uzytkownika
+        # Szukamy zapisanych embeddingow, a jesli ich nie ma to plikow z danymi
+        face_embeddings_path = os.path.join(user_dir, "face_embeddings.npy")
+        voice_embeddings_path = os.path.join(user_dir, "voice_embeddings.npy")
+
         face_files = [f for f in os.listdir(user_dir) if f.startswith("face_") and f.endswith((".jpg", ".png"))]
         voice_files = [f for f in os.listdir(user_dir) if f.startswith("voice_") and f.endswith((".wav", ".mp3"))]
 
-        # Porownujemy twarz z pierwszym zdjeciem uzytkownika (na razie uproszczone)
-        if face_files:
-            ref_face_path = os.path.join(user_dir, face_files[0])
-            ref_face_features = face_system.extract_features(ref_face_path)
-            face_score = face_system.verify(new_face_features, ref_face_features)
+        if os.path.exists(face_embeddings_path):
+            face_features = np.load(face_embeddings_path, allow_pickle=True)
+            face_score = best_score(face_system, new_face_features, face_features)
+        elif face_files:
+            face_scores = []
+            for face_name in face_files:
+                ref_face_path = os.path.join(user_dir, face_name)
+                ref_face_features = face_system.extract_features(ref_face_path)
+                face_scores.append(face_system.verify(new_face_features, ref_face_features))
+            face_score = max(face_scores)
         else:
             face_score = 0.0
 
-        # Porownujemy glos z pierwszym nagraniem uzytkownika
-        if voice_files:
-            ref_voice_path = os.path.join(user_dir, voice_files[0])
-            ref_voice_features = voice_system.extract_features(ref_voice_path)
-            voice_score = voice_system.verify(new_voice_features, ref_voice_features)
+        if os.path.exists(voice_embeddings_path):
+            voice_features = np.load(voice_embeddings_path, allow_pickle=True)
+            voice_score = best_score(voice_system, new_voice_features, voice_features)
+        elif voice_files:
+            voice_scores = []
+            for voice_name in voice_files:
+                ref_voice_path = os.path.join(user_dir, voice_name)
+                ref_voice_features = voice_system.extract_features(ref_voice_path)
+                voice_scores.append(voice_system.verify(new_voice_features, ref_voice_features))
+            voice_score = max(voice_scores)
         else:
             voice_score = 0.0
 
