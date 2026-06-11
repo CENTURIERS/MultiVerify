@@ -4,3 +4,4 @@ deepface
 librosa
 soundfile
 tf-keras
+matplotlib

@@ -2,8 +2,6 @@ import csv
 import os
 import sys
 
-import numpy as np
-
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_DIR)
 
@@ -25,11 +23,12 @@ VARIANTS = [
 
 
 def find_files(user_dir, prefix, extensions):
-    return [
+    files = [
         os.path.join(user_dir, name)
         for name in os.listdir(user_dir)
         if name.startswith(prefix) and name.endswith(extensions)
     ]
+    return sorted(files)
 
 
 def best_score(system, new_features, saved_features):
@@ -43,17 +42,19 @@ def best_score(system, new_features, saved_features):
     return max(scores)
 
 
-def load_or_extract(user_dir, kind, system):
+def split_enrollment_and_probe(user_dir, kind):
     if kind == "face":
-        embedding_path = os.path.join(user_dir, "face_embeddings.npy")
         files = find_files(user_dir, "face_", (".jpg", ".png"))
     else:
-        embedding_path = os.path.join(user_dir, "voice_embeddings.npy")
         files = find_files(user_dir, "voice_", (".wav", ".mp3"))
 
-    if os.path.exists(embedding_path):
-        return np.load(embedding_path, allow_pickle=True)
+    if len(files) < 2:
+        return [], None
 
+    return files[:-1], files[-1]
+
+
+def extract_features_for_files(system, files):
     features = []
     for file_path in files:
         features.append(system.extract_features(file_path))
@@ -86,24 +87,28 @@ def run_experiments():
     references = {}
     for user in users:
         user_dir = os.path.join(USERS_DIR, user)
+        face_enrollment, face_probe = split_enrollment_and_probe(user_dir, "face")
+        voice_enrollment, voice_probe = split_enrollment_and_probe(user_dir, "voice")
+
         references[user] = {
-            "face": load_or_extract(user_dir, "face", face_system),
-            "voice": load_or_extract(user_dir, "voice", voice_system),
+            "face": extract_features_for_files(face_system, face_enrollment),
+            "voice": extract_features_for_files(voice_system, voice_enrollment),
+            "face_probe": face_probe,
+            "voice_probe": voice_probe,
         }
 
     rows = []
 
     for probe_user in users:
-        probe_dir = os.path.join(USERS_DIR, probe_user)
-        face_files = find_files(probe_dir, "face_", (".jpg", ".png"))
-        voice_files = find_files(probe_dir, "voice_", (".wav", ".mp3"))
+        face_probe = references[probe_user]["face_probe"]
+        voice_probe = references[probe_user]["voice_probe"]
 
-        if len(face_files) == 0 or len(voice_files) == 0:
-            print(f"Pomijam {probe_user}, bo brakuje zdjecia albo nagrania.")
+        if face_probe is None or voice_probe is None:
+            print(f"Pomijam {probe_user}, bo potrzeba minimum 2 zdjec i 2 nagran.")
             continue
 
-        probe_face = face_system.extract_features(face_files[0])
-        probe_voice = voice_system.extract_features(voice_files[0])
+        probe_face = face_system.extract_features(face_probe)
+        probe_voice = voice_system.extract_features(voice_probe)
 
         for candidate in users:
             face_score = best_score(face_system, probe_face, references[candidate]["face"])

@@ -3,7 +3,7 @@
 
 \section{Środowisko}
 
-Projekt zaimplementowano w języku Python~3.12. Główne biblioteki:
+Projekt uruchamiano w środowisku Python~3.11. Główne biblioteki:
 \begin{itemize}
     \item \textbf{numpy} --- operacje na wektorach i macierzach,
     \item \textbf{deepface}, \textbf{tf-keras} --- moduł twarzy,
@@ -17,18 +17,18 @@ Zalecane jest użycie środowiska wirtualnego (\texttt{venv}). Szczegółowa ins
 
 \begin{verbatim}
 MultiVerify/
-├── main.py                 # identyfikacja 1:N
-├── register.py             # rejestracja użytkowników
-├── src/
-│   ├── modalities/
-│   │   ├── base.py         # interfejs BiometricModality
-│   │   ├── face/           # FaceModality (DeepFace)
-│   │   └── voice/          # VoiceModality (MFCC)
-│   └── fusion/
-│       └── fusion_engine.py
-├── scripts/run_experiments.py
-├── data/users/<user>/      # dane biometryczne (lokalnie)
-└── tests/
++-- main.py                 # identyfikacja 1:N
++-- register.py             # rejestracja użytkowników
++-- src/
+|   +-- modalities/
+|   |   +-- base.py         # interfejs BiometricModality
+|   |   +-- face/           # FaceModality (DeepFace)
+|   |   +-- voice/          # VoiceModality (MFCC)
+|   +-- fusion/
+|       +-- fusion_engine.py
++-- scripts/run_experiments.py
++-- data/users/<user>/      # dane biometryczne (lokalnie)
++-- tests/
 \end{verbatim}
 
 \section{Interfejs modalności}

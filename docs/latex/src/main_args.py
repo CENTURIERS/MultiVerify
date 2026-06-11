@@ -1,6 +1,6 @@
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="MultiVerify — identyfikacja multimodalna"
+        description="MultiVerify - identyfikacja multimodalna"
     )
     parser.add_argument("--face", required=True,
         help="Sciezka do zdjecia probe")

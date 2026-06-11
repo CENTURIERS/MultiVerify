@@ -12,7 +12,7 @@ Porównano warianty:
     \item \texttt{fusion\_50\_50}, \texttt{fusion\_60\_40}, \texttt{fusion\_70\_30}.
 \end{itemize}
 
-Skrypt \texttt{scripts/run\_experiments.py} generuje plik \texttt{docs/experiment\_results.csv}. Metryki FAR, FRR i accuracy obliczane są skryptem \texttt{compute\_metrics.py} (do uzupełnienia po finalnych eksperymentach).
+Skrypt \texttt{scripts/run\_experiments.py} generuje plik \texttt{docs/experiment\_results.csv}. Metryki FAR, FRR i accuracy obliczane są skryptem \texttt{scripts/compute\_metrics.py}, a podsumowanie zapisywane jest w pliku \texttt{docs/metrics\_summary.csv}.
 
 \section{Przykład identyfikacji}
 
@@ -37,6 +37,26 @@ System poprawnie wskazał użytkownika \texttt{kacper} jako najlepsze dopasowani
 
 \section{Analiza wyników}
 
+\subsection{Metryki zbiorcze}
+
+Tabela~\ref{tab:metrics_summary} przedstawia miejsce na metryki końcowe generowane przez skrypt \texttt{compute\_metrics.py}. W aktualnym uruchomieniu plik \texttt{experiment\_results.csv} zawierał tylko nagłówek, ponieważ w folderach użytkowników nie było kompletu próbek wymaganych przez eksperyment (minimum dwa zdjęcia i dwa nagrania na osobę). Po uzupełnieniu danych tabela powinna zostać przepisana z pliku \texttt{metrics\_summary.csv}.
+
+\begin{table}[H]
+    \centering
+    \caption{Podsumowanie metryk eksperymentu.\label{tab:metrics_summary}}
+    \begin{tabular}{lccc}
+        \toprule
+        Wariant & Accuracy & FAR & FRR \\
+        \midrule
+        \texttt{face\_only} & -- & -- & -- \\
+        \texttt{voice\_only} & -- & -- & -- \\
+        \texttt{fusion\_50\_50} & -- & -- & -- \\
+        \texttt{fusion\_60\_40} & -- & -- & -- \\
+        \texttt{fusion\_70\_30} & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \subsection{Modalność twarzy}
 
 Moduł oparty na Facenet zapewnił wyraźną separację tożsamości --- wyniki twarzy dla użytkowników obcych były niskie (0{,}15--0{,}53). Modalność ta okazała się najbardziej rozróżniająca w badanej bazie.
@@ -53,12 +73,17 @@ Fuzja 60/40 pozwoliła zachować wysoki wynik dla prawdziwego użytkownika (1{,}
 
 Podniesienie progu $\tau$ (np.\ do 0{,}85) zmniejsza FAR kosztem wzrostu FRR. Wykres zależności FAR/FRR od progu należy wygenerować na podstawie pełnej macierzy eksperymentów (plik \texttt{docs/charts/threshold\_sweep.png}).
 
-% Kamil: wstaw wykres po wygenerowaniu
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.85\linewidth]{figures/far_frr_by_variant.png}
-%     \caption{FAR i FRR w zależności od wariantu fuzji.}
-% \end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figures/far_frr_by_variant.png}
+    \caption{FAR i FRR w zależności od wariantu fuzji.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figures/threshold_sweep.png}
+    \caption{Wpływ progu decyzyjnego na FAR i FRR dla fuzji 60/40.}
+\end{figure}
 
 \section{Analiza bezpieczeństwa}
 
@@ -77,6 +102,6 @@ Zastosowano m.in.: fuzję dwóch modalności, regułę AND, konfigurowalny próg
 
 \section{Podsumowanie eksperymentów}
 
-Eksperymenty potwierdzają poprawne działanie pipeline'u multimodalnego. Największe ograniczenie stanowi modalność głosu. Fuzja z twarzą kompensuje ten problem w testach identyfikacji właściwego użytkownika, lecz wymaga strojenia progu w celu ograniczenia FAR.
+Eksperymenty potwierdzają poprawne działanie pipeline'u multimodalnego na poziomie kodu i procedury pomiarowej. Największe ograniczenie stanowi modalność głosu. Fuzja z twarzą kompensuje ten problem w testach identyfikacji właściwego użytkownika, lecz wymaga strojenia progu w celu ograniczenia FAR.
 
-\textit{Uwaga:} ostateczne wartości FAR/FRR dla wszystkich wariantów należy uzupełnić po uruchomieniu \texttt{run\_experiments.py} i \texttt{compute\_metrics.py}.
+\textit{Uwaga:} ostateczne wartości FAR/FRR dla wszystkich wariantów należy uzupełnić po uruchomieniu \texttt{run\_experiments.py} i \texttt{compute\_metrics.py} na kompletnych danych użytkowników.
