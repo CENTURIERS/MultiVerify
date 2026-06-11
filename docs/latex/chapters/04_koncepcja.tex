@@ -3,7 +3,7 @@
 
 \section{Ogólna idea}
 
-System MultiVerify realizuje klasyczny pipeline biometryczny podzielony na dwa główne etapy: \textbf{rejestrację (enrollment)} oraz \textbf{identyfikację (1:N)}. W obu przypadkach przetwarzane są dwie modalności równolegle; decyzja końcowa zapada po fazie fuzji wyników cząstkowych.
+System MultiVerify realizuje klasyczny pipeline biometryczny podzielony na dwa główne etapy: \textbf{rejestrację} oraz \textbf{identyfikację (1:N)}. W obu przypadkach przetwarzane są dwie modalności równolegle; decyzja końcowa zapada po fazie fuzji wyników cząstkowych.
 
 \section{Schemat blokowy}
 
@@ -12,31 +12,54 @@ Na rys.~\ref{fig:pipeline} przedstawiono przepływ danych w systemie.
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        node distance=8mm and 12mm,
-        block/.style={rectangle, draw, rounded corners, align=center, minimum width=28mm, minimum height=9mm, font=\small},
-        arrow/.style={-{Stealth[length=2mm]}, thick}
+        x=1cm, y=1cm,
+        block/.style={
+            rectangle,
+            draw,
+            rounded corners,
+            align=center,
+            text width=3.3cm,
+            minimum height=0.85cm,
+            font=\small
+        },
+        arrow/.style={-{Stealth[length=2mm]}, thick},
+        phase/.style={font=\footnotesize\itshape}
     ]
-        \node[block] (in) {Zdjęcie +\\nagranie};
-        \node[block, below=of in] (reg) {Rejestracja\\(\texttt{register.py})};
-        \node[block, below left=14mm and 8mm of reg] (face) {Ekstrakcja\\twarzy};
-        \node[block, below right=14mm and 8mm of reg] (voice) {Ekstrakcja\\głosu};
-        \node[block, below=18mm of face] (embF) {Baza\\embeddingów twarzy};
-        \node[block, below=18mm of voice] (embV) {Baza\\embeddingów głosu};
-        \node[block, below=22mm of reg] (probe) {Probe\\(\texttt{main.py})};
-        \node[block, below=of probe] (cmp) {Porównanie 1:N\\(cosine similarity)};
-        \node[block, below=of cmp] (fus) {Fuzja\\(\texttt{FusionEngine})};
-        \node[block, below=of fus] (dec) {Decyzja\\dostęp TAK/NIE};
+        % --- Etap rejestracji ---
+        \node[phase, anchor=east] at (-6.0, 1.6) {Rejestracja};
+        \node[block] (inR) at (0, 1.4) {Zdjęcie + nagranie\\(wzorce użytkownika)};
+        \node[block] (reg) at (0, 0) {Rejestracja\\\texttt{register.py}};
+        \node[block] (face) at (-4.6, -1.5) {Ekstrakcja twarzy};
+        \node[block] (voice) at (4.6, -1.5) {Ekstrakcja głosu};
+        \node[block] (embF) at (-4.6, -3.0) {Baza wektorów\\cech twarzy};
+        \node[block] (embV) at (4.6, -3.0) {Baza wektorów\\cech głosu};
 
-        \draw[arrow] (in) -- (reg);
-        \draw[arrow] (reg) -- (face);
-        \draw[arrow] (reg) -- (voice);
+        \draw[dashed, gray!70] (-6.3, -3.7) -- (6.3, -3.7);
+
+        % --- Etap identyfikacji ---
+        \node[phase, anchor=east] at (-6.0, -4.4) {Identyfikacja};
+        \node[block] (inP) at (0, -4.6) {Zdjęcie + nagranie\\(dane próbne)};
+        \node[block] (prob) at (0, -6.0) {Identyfikacja\\\texttt{main.py}};
+        \node[block] (cmp) at (0, -7.4) {Porównanie 1:N\\{\footnotesize podobieństwo cosinusowe}};
+        \node[block] (fus) at (0, -8.8) {Fuzja wyników\\\texttt{FusionEngine}};
+        \node[block] (dec) at (0, -10.2) {Decyzja o dostępie\\TAK\,/\,NIE};
+
+        % Rejestracja
+        \draw[arrow] (inR) -- (reg);
+        \draw[arrow] (reg.south) ++(-2mm,0) -| (face.north);
+        \draw[arrow] (reg.south) ++(2mm,0) -| (voice.north);
         \draw[arrow] (face) -- (embF);
         \draw[arrow] (voice) -- (embV);
-        \draw[arrow] (embF) -| (cmp);
-        \draw[arrow] (embV) -| (cmp);
-        \draw[arrow] (probe) -- (cmp);
+
+        % Identyfikacja (oś pionowa)
+        \draw[arrow] (inP) -- (prob);
+        \draw[arrow] (prob) -- (cmp);
         \draw[arrow] (cmp) -- (fus);
         \draw[arrow] (fus) -- (dec);
+
+        % Bazy -> porównanie (proste łączenia ortogonalne)
+        \draw[arrow] (embF.east) |- (cmp.west);
+        \draw[arrow] (embV.west) |- (cmp.east);
     \end{tikzpicture}
     \caption{Schemat blokowy systemu MultiVerify.\label{fig:pipeline}}
 \end{figure}
@@ -46,7 +69,7 @@ Na rys.~\ref{fig:pipeline} przedstawiono przepływ danych w systemie.
 Dla każdego użytkownika system:
 \begin{enumerate}
     \item wczytuje pliki \texttt{face\_*} i \texttt{voice\_*} z katalogu \texttt{data/users/<user>/},
-    \item wyznacza embeddingi twarzy (wektor Facenet) oraz wektory MFCC głosu,
+    \item wyznacza wektory cech twarzy (model Facenet) oraz wektory MFCC głosu,
     \item zapisuje wyniki w plikach \texttt{face\_embeddings.npy} oraz \texttt{voice\_embeddings.npy}.
 \end{enumerate}
 
@@ -54,7 +77,7 @@ Dla każdego użytkownika system:
 
 Podczas identyfikacji system:
 \begin{enumerate}
-    \item ekstrahuje cechy z nowego zdjęcia i nagrania (probe),
+    \item ekstrahuje cechy z nowego zdjęcia i nagrania (dane próbne),
     \item dla każdego użytkownika w bazie oblicza wynik podobieństwa twarzy i głosu,
     \item wybiera najlepszy wynik w ramach wielu wzorców jednego użytkownika,
     \item łączy wyniki w silniku fuzji,
