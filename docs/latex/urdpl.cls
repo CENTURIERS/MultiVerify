@@ -83,7 +83,9 @@
 \def\faculty#1          {\gdef\@faculty{#1}}
 \def\thesistype#1       {\gdef\@thesistype{#1}}
 \def\supervisor#1       {\gdef\@supervisor{#1}}
-\def\acknowledgements#1 {\gdef\@acknowledgements{#1}}
+\newif\ifackpage
+\ackpagefalse
+\def\acknowledgements#1 {\gdef\@acknowledgements{#1}\ackpagetrue}
 \def\department#1       {\gdef\@department{#1}}
 \def\degreeprogramme#1  {\gdef\@degreeprogramme{#1}}
 \def\noAlbum#1          {\gdef\@noAlbum{#1}}
@@ -166,18 +168,20 @@
 \end{titlepage}
 
   %-------------------------
-  % Podziękowania
+  % Podziękowania (opcjonalnie)
   %-------------------------
-  \clearpage
-  \begin{titlepage}
-  \thispagestyle{empty}
-  \vspace*{15cm}\vfill
-  \begin{flushright}
-    \begin{minipage}{10cm}
-      {\itshape \@acknowledgements}
-    \end{minipage}
-  \end{flushright}
-  \end{titlepage}
+  \ifackpage
+    \clearpage
+    \begin{titlepage}
+    \thispagestyle{empty}
+    \vspace*{15cm}\vfill
+    \begin{flushright}
+      \begin{minipage}{10cm}
+        {\itshape \@acknowledgements}
+      \end{minipage}
+    \end{flushright}
+    \end{titlepage}
+  \fi
 
   %-------------------------
   % Pusta strona (opcjonalnie)
@@ -188,7 +192,11 @@
   \clearpage
 
   % Jeśli chcesz wymusić start numeracji:
-  \setcounter{page}{5}%
+  \ifackpage
+    \setcounter{page}{5}%
+  \else
+    \setcounter{page}{4}%
+  \fi
 }
 
 %---------------------------------------------------------------------------

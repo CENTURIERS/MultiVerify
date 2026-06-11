@@ -6,16 +6,16 @@
 Problem polega na automatycznej identyfikacji użytkownika na podstawie danych biometrycznych w postaci \textbf{zdjęcia twarzy} oraz \textbf{nagrania głosu}. System musi:
 \begin{enumerate}
     \item zarejestrować użytkowników (utworzyć wzorce biometryczne),
-    \item porównać nowe dane (probe) z bazą wszystkich użytkowników,
+    \item porównać nowe dane próbne z bazą wszystkich użytkowników,
     \item wybrać najbardziej prawdopodobną tożsamość,
     \item podjąć decyzję o dostępie na podstawie progu akceptacji.
 \end{enumerate}
 
 W praktyce występują dwa rodzaje błędów~\cite{jain2004multimodal}:
-\begin{description}
-    \item[FAR (False Accept Rate)] fałszywa akceptacja --- system uznaje obcą osobę za zarejestrowanego użytkownika,
-    \item[FRR (False Reject Rate)] fałszywe odrzucenie --- system odmawia dostępu prawdziwemu użytkownikowi.
-\end{description}
+\begin{itemize}
+    \item \textbf{FAR} (\emph{ang. False Accept Rate}) --- fałszywa akceptacja, gdy system uznaje obcą osobę za zarejestrowanego użytkownika,
+    \item \textbf{FRR} (\emph{ang. False Reject Rate}) --- fałszywe odrzucenie, gdy system odmawia dostępu prawdziwemu użytkownikowi.
+\end{itemize}
 
 Celem projektu jest minimalizacja obu metryk przy zachowaniu prostoty implementacji demonstracyjnej.
 
@@ -27,7 +27,7 @@ System operuje na plikach przechowywanych lokalnie:
     \item \textbf{Głos:} nagrania \texttt{voice\_*.wav} lub \texttt{voice\_*.mp3}.
 \end{itemize}
 
-Na użytkownika zaleca się co najmniej trzy zdjęcia i trzy nagrania (5--10~s mowy). Pliki probe (np.\ \texttt{face\_3}, \texttt{voice\_3}) powinny być różne od wzorców użytych wyłącznie do testów, aby uniknąć zawyżonych wyników.
+Dla każdego użytkownika zaleca się zebranie co najmniej trzech zdjęć i trzech nagrań (5--10~s mowy). Jako dane próbne wykorzystano pliki \texttt{face\_3} oraz \texttt{voice\_3}, różne od pozostałych wzorców rejestracyjnych, aby uniknąć zawyżonych wyników.
 
 \section{Założenia działania}
 
@@ -37,15 +37,15 @@ Przyjęto następujące założenia:
     \item nagrania głosu zawierają wyłącznie mowę danej osoby, bez silnego szumu tła,
     \item identyfikacja odbywa się offline (brak wymogu chmury),
     \item baza użytkowników jest skończona i znana z góry (tryb 1:N),
-    \item środowisko uruchomieniowe: Python~3.12, system Windows/Linux.
+    \item środowisko uruchomieniowe: Python~3.12, system Windows lub Linux.
 \end{itemize}
 
 \section{Ograniczenia}
 
 Główne ograniczenia rozwiązania:
 \begin{itemize}
-    \item brak rejestracji i identyfikacji w czasie rzeczywistym z kamery/mikrofonu,
-    \item proste cechy głosu (MFCC) --- mniejsza rozdzielczość niż w modelach głębokich,
+    \item brak rejestracji i identyfikacji w czasie rzeczywistym z kamery lub mikrofonu,
+    \item proste cechy głosu (MFCC), co daje mniejszą rozdzielczość niż modele głębokie,
     \item zależność modułu twarzy od biblioteki DeepFace i modelu Facenet,
     \item wrażliwość na jakość danych (oświetlenie, format plików audio),
     \item brak mechanizmów anty-spoofing (np.\ wykrywania zdjęcia zamiast żywej twarzy).
