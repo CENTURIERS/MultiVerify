@@ -1,0 +1,56 @@
+\chapter{Implementacja}
+\label{cha:implementacja}
+
+\section{Środowisko}
+
+Projekt zaimplementowano w języku Python~3.12. Główne biblioteki:
+\begin{itemize}
+    \item \textbf{numpy} --- operacje na wektorach i macierzach,
+    \item \textbf{deepface}, \textbf{tf-keras} --- moduł twarzy,
+    \item \textbf{librosa}, \textbf{soundfile} --- przetwarzanie audio,
+    \item \textbf{pytest} --- testy jednostkowe.
+\end{itemize}
+
+Zalecane jest użycie środowiska wirtualnego (\texttt{venv}). Szczegółowa instrukcja uruchomienia znajduje się w pliku \texttt{README.md}.
+
+\section{Struktura projektu}
+
+\begin{verbatim}
+MultiVerify/
+├── main.py                 # identyfikacja 1:N
+├── register.py             # rejestracja użytkowników
+├── src/
+│   ├── modalities/
+│   │   ├── base.py         # interfejs BiometricModality
+│   │   ├── face/           # FaceModality (DeepFace)
+│   │   └── voice/          # VoiceModality (MFCC)
+│   └── fusion/
+│       └── fusion_engine.py
+├── scripts/run_experiments.py
+├── data/users/<user>/      # dane biometryczne (lokalnie)
+└── tests/
+\end{verbatim}
+
+\section{Interfejs modalności}
+
+Każda modalność implementuje klasę bazową z metodami \texttt{extract\_features} oraz \texttt{verify}, co umożliwia jednolite traktowanie różnych źródeł biometrii.
+
+\section{Silnik fuzji}
+
+Listing~\ref{lst:fusion} przedstawia fragment implementacji strategii fuzji.
+
+\lstinputlisting[style=pythonStyle, caption={Fragment silnika fuzji (\texttt{FusionEngine}).}, label=lst:fusion]{src/fusion_engine.py}
+
+\section{Identyfikacja użytkownika}
+
+Program \texttt{main.py} udostępnia interfejs CLI z parametrami \texttt{--face}, \texttt{--voice}, \texttt{--threshold} oraz \texttt{--strategy}. Fragment parsera argumentów przedstawiono w listingu~\ref{lst:main}.
+
+\lstinputlisting[style=pythonStyle, caption={Parser argumentów w \texttt{main.py}.}, label=lst:main]{src/main_args.py}
+
+\section{Rejestracja}
+
+Skrypt \texttt{register.py} automatycznie przetwarza wszystkie podkatalogi w \texttt{data/users/}, generując pliki \texttt{.npy} z embeddingami. Dzięki temu identyfikacja nie wymaga ponownego przetwarzania surowych plików multimedialnych.
+
+\section{Testy}
+
+Zaimplementowano testy jednostkowe modułu fuzji oraz funkcji podobieństwa. Uruchomienie: \texttt{pytest}. W momencie opracowania dokumentacji wszystkie 11 testów przechodziło pomyślnie.

@@ -1,0 +1,82 @@
+\chapter{Wyniki i eksperymenty}
+\label{cha:wyniki}
+
+\section{Konfiguracja eksperymentu}
+
+Testy przeprowadzono na bazie czterech użytkowników zarejestrowanych w systemie. Dla każdej osoby wykorzystano trzy zdjęcia twarzy i trzy nagrania głosu. Jako dane probe przyjmowano pliki trzeciej próbki (\texttt{face\_3}, \texttt{voice\_3}).
+
+Porównano warianty:
+\begin{itemize}
+    \item \texttt{face\_only} --- $w_f = 1{,}0$, $w_v = 0{,}0$,
+    \item \texttt{voice\_only} --- $w_f = 0{,}0$, $w_v = 1{,}0$,
+    \item \texttt{fusion\_50\_50}, \texttt{fusion\_60\_40}, \texttt{fusion\_70\_30}.
+\end{itemize}
+
+Skrypt \texttt{scripts/run\_experiments.py} generuje plik \texttt{docs/experiment\_results.csv}. Metryki FAR, FRR i accuracy obliczane są skryptem \texttt{compute\_metrics.py} (do uzupełnienia po finalnych eksperymentach).
+
+\section{Przykład identyfikacji}
+
+Tabela~\ref{tab:probe_kacper} przedstawia wyniki identyfikacji dla probe użytkownika \texttt{kacper} (strategia \texttt{weighted}, $\tau = 0{,}7$).
+
+\begin{table}[H]
+    \centering
+    \caption{Wyniki identyfikacji --- probe użytkownika kacper.\label{tab:probe_kacper}}
+    \begin{tabular}{lccc}
+        \toprule
+        Użytkownik & Twarz & Głos & Fuzja \\
+        \midrule
+        kacper  & 1{,}00 & 1{,}00 & 1{,}0000 \\
+        kamil   & 0{,}53 & 0{,}98 & 0{,}7115 \\
+        krystian & 0{,}15 & 0{,}98 & 0{,}4829 \\
+        marcel  & 0{,}17 & 0{,}97 & 0{,}4880 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+System poprawnie wskazał użytkownika \texttt{kacper} jako najlepsze dopasowanie. Jednocześnie zauważono wysokie podobieństwo głosu dla użytkowników obcych (np.\ \texttt{kamil}: 0{,}98), co wynika z ograniczeń MFCC.
+
+\section{Analiza wyników}
+
+\subsection{Modalność twarzy}
+
+Moduł oparty na Facenet zapewnił wyraźną separację tożsamości --- wyniki twarzy dla użytkowników obcych były niskie (0{,}15--0{,}53). Modalność ta okazała się najbardziej rozróżniająca w badanej bazie.
+
+\subsection{Modalność głosu}
+
+Wyniki głosu dla różnych użytkowników były wysokie (często $> 0{,}9$), nawet gdy mówca był inny. Potwierdza to, że proste MFCC bez modelu rozpoznawania mówcy słabo rozróżnia tożsamości w małej grupie mówców męskich o podobnych nagraniach.
+
+\subsection{Fuzja multimodalna}
+
+Fuzja 60/40 pozwoliła zachować wysoki wynik dla prawdziwego użytkownika (1{,}0) i jednocześnie wykorzystać niski wynik twarzy przy odrzucaniu obcych w niektórych przypadkach. Strategia \texttt{and} dodatkowo ogranicza fałszywe akceptacje wymagając progu w obu modalnościach.
+
+\subsection{Wpływ progu}
+
+Podniesienie progu $\tau$ (np.\ do 0{,}85) zmniejsza FAR kosztem wzrostu FRR. Wykres zależności FAR/FRR od progu należy wygenerować na podstawie pełnej macierzy eksperymentów (plik \texttt{docs/charts/threshold\_sweep.png}).
+
+% Kamil: wstaw wykres po wygenerowaniu
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.85\linewidth]{figures/far_frr_by_variant.png}
+%     \caption{FAR i FRR w zależności od wariantu fuzji.}
+% \end{figure}
+
+\section{Analiza bezpieczeństwa}
+
+\subsection{Zagrożenia}
+
+\begin{itemize}
+    \item \textbf{Atak prezentacji (spoofing)} --- użycie zdjęcia zamiast żywej twarzy; system nie zawiera detekcji żywotności (liveness).
+    \item \textbf{Replay głosu} --- odtworzenie nagrania; MFCC nie rozróżnia autentycznej mowy od nagrania.
+    \item \textbf{Atak jedną modalnością} --- przy dominacji słabej modalności głosu impostor może uzyskać wynik powyżej progu (np.\ kamil: fuzja 0{,}71 przy probe kacpera).
+    \item \textbf{Jakość danych} --- uszkodzone pliki MP3 mogą uniemożliwić rejestrację.
+\end{itemize}
+
+\subsection{Środki zaradcze}
+
+Zastosowano m.in.: fuzję dwóch modalności, regułę AND, konfigurowalny próg, walidację istnienia plików wejściowych. W środowisku produkcyjnym zalecałoby się modele anty-spoofing, silniejszy model głosu oraz weryfikację 1:1 zamiast samego rankingu 1:N.
+
+\section{Podsumowanie eksperymentów}
+
+Eksperymenty potwierdzają poprawne działanie pipeline'u multimodalnego. Największe ograniczenie stanowi modalność głosu. Fuzja z twarzą kompensuje ten problem w testach identyfikacji właściwego użytkownika, lecz wymaga strojenia progu w celu ograniczenia FAR.
+
+\textit{Uwaga:} ostateczne wartości FAR/FRR dla wszystkich wariantów należy uzupełnić po uruchomieniu \texttt{run\_experiments.py} i \texttt{compute\_metrics.py}.

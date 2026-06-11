@@ -1,0 +1,73 @@
+\chapter{Opis koncepcji rozwiązania}
+\label{cha:koncepcja}
+
+\section{Ogólna idea}
+
+System MultiVerify realizuje klasyczny pipeline biometryczny podzielony na dwa główne etapy: \textbf{rejestrację (enrollment)} oraz \textbf{identyfikację (1:N)}. W obu przypadkach przetwarzane są dwie modalności równolegle; decyzja końcowa zapada po fazie fuzji wyników cząstkowych.
+
+\section{Schemat blokowy}
+
+Na rys.~\ref{fig:pipeline} przedstawiono przepływ danych w systemie.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=8mm and 12mm,
+        block/.style={rectangle, draw, rounded corners, align=center, minimum width=28mm, minimum height=9mm, font=\small},
+        arrow/.style={-{Stealth[length=2mm]}, thick}
+    ]
+        \node[block] (in) {Zdjęcie +\\nagranie};
+        \node[block, below=of in] (reg) {Rejestracja\\(\texttt{register.py})};
+        \node[block, below left=14mm and 8mm of reg] (face) {Ekstrakcja\\twarzy};
+        \node[block, below right=14mm and 8mm of reg] (voice) {Ekstrakcja\\głosu};
+        \node[block, below=18mm of face] (embF) {Baza\\embeddingów twarzy};
+        \node[block, below=18mm of voice] (embV) {Baza\\embeddingów głosu};
+        \node[block, below=22mm of reg] (probe) {Probe\\(\texttt{main.py})};
+        \node[block, below=of probe] (cmp) {Porównanie 1:N\\(cosine similarity)};
+        \node[block, below=of cmp] (fus) {Fuzja\\(\texttt{FusionEngine})};
+        \node[block, below=of fus] (dec) {Decyzja\\dostęp TAK/NIE};
+
+        \draw[arrow] (in) -- (reg);
+        \draw[arrow] (reg) -- (face);
+        \draw[arrow] (reg) -- (voice);
+        \draw[arrow] (face) -- (embF);
+        \draw[arrow] (voice) -- (embV);
+        \draw[arrow] (embF) -| (cmp);
+        \draw[arrow] (embV) -| (cmp);
+        \draw[arrow] (probe) -- (cmp);
+        \draw[arrow] (cmp) -- (fus);
+        \draw[arrow] (fus) -- (dec);
+    \end{tikzpicture}
+    \caption{Schemat blokowy systemu MultiVerify.\label{fig:pipeline}}
+\end{figure}
+
+\section{Etap rejestracji}
+
+Dla każdego użytkownika system:
+\begin{enumerate}
+    \item wczytuje pliki \texttt{face\_*} i \texttt{voice\_*} z katalogu \texttt{data/users/<user>/},
+    \item wyznacza embeddingi twarzy (wektor Facenet) oraz wektory MFCC głosu,
+    \item zapisuje wyniki w plikach \texttt{face\_embeddings.npy} oraz \texttt{voice\_embeddings.npy}.
+\end{enumerate}
+
+\section{Etap identyfikacji}
+
+Podczas identyfikacji system:
+\begin{enumerate}
+    \item ekstrahuje cechy z nowego zdjęcia i nagrania (probe),
+    \item dla każdego użytkownika w bazie oblicza wynik podobieństwa twarzy i głosu,
+    \item wybiera najlepszy wynik w ramach wielu wzorców jednego użytkownika,
+    \item łączy wyniki w silniku fuzji,
+    \item wskazuje użytkownika z najwyższym wynikiem końcowym i weryfikuje próg akceptacji.
+\end{enumerate}
+
+\section{Parametry decyzyjne}
+
+Domyślnie zastosowano:
+\begin{itemize}
+    \item wagi fuzji: $w_f = 0{,}6$, $w_v = 0{,}4$,
+    \item próg akceptacji: $\tau = 0{,}7$,
+    \item strategia domyślna: suma ważona (\texttt{weighted}).
+\end{itemize}
+
+Parametry te mogą być modyfikowane z linii poleceń programu \texttt{main.py}.

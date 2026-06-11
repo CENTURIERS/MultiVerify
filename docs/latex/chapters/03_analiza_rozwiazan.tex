@@ -1,0 +1,40 @@
+\chapter{Analiza istniejących rozwiązań}
+\label{cha:analiza}
+
+\section{Wprowadzenie}
+
+Na rynku oraz w literaturze naukowej dostępnych jest wiele systemów biometrycznych opartych na pojedynczej lub wielu modalnościach. Poniżej przedstawiono trzy reprezentatywne podejścia oraz wskazano elementy nowatorskie projektu MultiVerify.
+
+\section{Face ID (Apple)}
+
+System Face ID w urządzeniach Apple wykorzystuje zaawansowany czujnik TrueDepth do mapowania geometrii twarzy w trzech wymiarach~\cite{apple2024faceid}. Uwierzytelnianie odbywa się lokalnie na urządzeniu, a dane biometryczne nie są przesyłane do chmury w postaci surowej.
+
+\textbf{Zalety:} wysoka wygoda użytkownika, integracja ze sprzętem, mechanizmy anty-spoofing.\\
+\textbf{Wady:} zamknięta implementacja, zależność od ekosystemu Apple, brak jawnej multimodalności z głosem w standardowym API.
+
+\section{Rozpoznawanie mówcy (speaker recognition)}
+
+Klasyczne systemy rozpoznawania mówcy opierają się na ekstrakcji cech akustycznych --- w tym MFCC --- oraz klasyfikacji lub porównywaniu wektorów cech~\cite{davis1980comparison}. Współczesne rozwiązania komercyjne stosują modele głębokie (np.\ x-vectors), ale podejście MFCC pozostaje popularne w zastosowaniach edukacyjnych i prototypowych~\cite{librosa2024}.
+
+\textbf{Zalety:} niski koszt obliczeniowy, interpretowalność cech.\\
+\textbf{Wady:} wrażliwość na szum, mikrofon i długość wypowiedzi; podatność na atak replay.
+
+\section{Systemy komercyjne multimodalne}
+
+Duże systemy kontroli dostępu (np.\ w obiektach korporacyjnych) często łączą kartę RFID, PIN oraz biometrię twarzy lub odcisku palca~\cite{jain2008introduction}. Fuzja informacji może odbywać się na poziomie decyzji (late fusion) lub cech (early fusion)~\cite{ross2006multimodal}.
+
+\textbf{Zalety:} wysoka niezawodność przy właściwej konfiguracji.\\
+\textbf{Wady:} złożoność wdrożenia, koszt, brak transparentności algorytmów.
+
+\section{Nowość projektu MultiVerify}
+
+Projektowany system wyróżnia się następującymi cechami:
+\begin{itemize}
+    \item \textbf{otwarta implementacja} w Pythonie z czytelną strukturą modułową,
+    \item \textbf{łatwa replikacja} eksperymentów (skrypty rejestracji, identyfikacji i testów),
+    \item \textbf{porównanie strategii fuzji} (suma ważona vs.\ reguła AND) oraz wariantów wag,
+    \item \textbf{świadome połączenie} modelu głębokiego (twarz) z metodą klasyczną (głos),
+    \item analiza metryk FAR/FRR na rzeczywistych danych zespołu projektowego.
+\end{itemize}
+
+MultiVerify nie konkuruje z systemami komercyjnymi pod względem bezpieczeństwa produkcyjnego, lecz demonstruje pełny pipeline multimodalny zgodny z wymaganiami akademickimi.

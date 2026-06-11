@@ -1,0 +1,37 @@
+\chapter{Wnioski końcowe}
+\label{cha:wnioski}
+
+\section{Podsumowanie}
+
+W ramach projektu opracowano działający system multimodalnej identyfikacji użytkownika \textbf{MultiVerify}, łączący rozpoznawanie twarzy (DeepFace/Facenet) z analizą głosu (MFCC). Zaimplementowano pełny cykl: rejestrację, identyfikację 1:N, fuzję wyników oraz framework eksperymentalny.
+
+\section{Najważniejsze obserwacje}
+
+\begin{itemize}
+    \item Modalność twarzy zapewnia wysoką rozdzielczość tożsamości w testach zespołu.
+    \item Modalność głosu oparta na MFCC wykazuje wysokie podobieństwo między różnymi użytkownikami --- wymaga to uwagi przy doborze progu.
+    \item Fuzja multimodalna poprawia odporność decyzji względem pojedynczej słabszej cechy.
+    \item Strategia \texttt{and} jest bardziej konserwatywna i zmniejsza ryzyko fałszywej akceptacji.
+\end{itemize}
+
+\section{Ocena skuteczności}
+
+System spełnia założenia projektu demonstracyjnego: poprawnie identyfikuje zarejestrowanych użytkowników na danych testowych zespołu. Nie jest gotowy do wdrożenia produkcyjnego bez dodatkowych mechanizmów bezpieczeństwa i silniejszego modelu głosu.
+
+\section{Możliwości rozwoju}
+
+Kierunki dalszego rozwoju:
+\begin{itemize}
+    \item integracja z kamerą i mikrofonem w czasie rzeczywistym,
+    \item zastąpienie MFCC modelem x-vector lub podobnym,
+    \item detekcja żywotności (anti-spoofing),
+    \item automatyczne strojenie progu i wag na zbiorze walidacyjnym,
+    \item tryb weryfikacji 1:1 (logowanie do konkretnego konta).
+\end{itemize}
+
+\section{Podział pracy}
+
+\begin{itemize}
+    \item \textbf{Kacper Ręczak} --- architektura systemu, moduł twarzy, fuzja, \texttt{main.py}, \texttt{register.py}, rozdziały 1, 2, 4, 5 (twarz i fuzja), 6.
+    \item \textbf{Kamil Szopniewski} --- moduł głosu, eksperymenty, metryki FAR/FRR, wykresy, rozdziały 3, 5 (głos), 7, 8, bibliografia.
+\end{itemize}

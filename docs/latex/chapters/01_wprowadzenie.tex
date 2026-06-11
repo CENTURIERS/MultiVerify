@@ -1,0 +1,32 @@
+\chapter{Wprowadzenie}
+\label{cha:wprowadzenie}
+
+\section{Cel projektu}
+
+Celem projektu jest zaprojektowanie i implementacja systemu \emph{MultiVerify} --- rozwiązania biometrycznego wykorzystującego \textbf{dwie modalności}: rozpoznawanie twarzy oraz rozpoznawanie mówcy. System realizuje identyfikację użytkownika w trybie \emph{1:N} (porównanie z bazą zarejestrowanych osób) oraz podejmuje decyzję o przyznaniu lub odmowie dostępu.
+
+Projekt został opracowany w ramach przedmiotu \emph{Biometryczne systemy zabezpieczeń} i wpisuje się w temat \emph{Systemy multimodalne (zaawansowane)}.
+
+\section{Kontekst zastosowania}
+
+Systemy biometryczne są powszechnie stosowane w kontroli dostępu do pomieszczeń, stacji roboczych oraz aplikacji wymagających uwierzytelnienia użytkownika. Pojedyncza cecha biometryczna (np. sam obraz twarzy) może być niewystarczająca w warunkach słabego oświetlenia, szumu akustycznego lub prób ataku fałszywą tożsamością.
+
+Podejście multimodalne łączy niezależne źródła informacji i pozwala podnieść niezawodność decyzji identyfikacyjnej~\cite{jain2004multimodal,ross2006multimodal}. \textbf{MultiVerify} demonstruje tę ideę w praktyce na przykładzie fuzji wyników z modułu twarzy i modułu głosu.
+
+\section{Zakres realizacji}
+
+Zakres projektu obejmuje:
+\begin{itemize}
+    \item implementację modułu ekstrakcji cech twarzy (biblioteka DeepFace, model Facenet),
+    \item implementację modułu ekstrakcji cech głosu (współczynniki MFCC),
+    \item silnik fuzji wyników (late fusion) z dwiema strategiami decyzyjnymi,
+    \item proces rejestracji użytkowników oraz identyfikacji 1:N,
+    \item przeprowadzenie eksperymentów porównawczych (modalność pojedyncza vs.\ fuzja),
+    \item analizę skuteczności, ograniczeń i zagrożeń bezpieczeństwa.
+\end{itemize}
+
+Poza zakresem pozostaje m.in.\ integracja z fizycznymi urządzeniami (kamera, bramka), rejestracja na żywo oraz wdrożenie produkcyjne w środowisku rozproszonym.
+
+\section{Struktura dokumentu}
+
+Rozdział~\ref{cha:problem} opisuje problem i założenia. Rozdział~\ref{cha:analiza} przedstawia analizę istniejących rozwiązań. W rozdziale~\ref{cha:koncepcja} przedstawiono koncepcję systemu, a w rozdziale~\ref{cha:metody} --- zastosowane metody. Rozdział~\ref{cha:implementacja} zawiera opis implementacji. Wyniki eksperymentów i analiza bezpieczeństwa znajdują się w rozdziale~\ref{cha:wyniki}. Dokument kończy rozdział~\ref{cha:wnioski} z wnioskami.

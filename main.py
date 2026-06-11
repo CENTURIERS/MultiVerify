@@ -1,11 +1,14 @@
+import argparse
 import os
+
 import numpy as np
 
+from src.fusion.fusion_engine import FusionEngine
 from src.modalities.face.face_modality import FaceModality
 from src.modalities.voice.voice_modality import VoiceModality
-from src.fusion.fusion_engine import FusionEngine
 
 USERS_DIR = "data/users"
+
 
 def best_score(system, new_features, saved_features):
     """
@@ -20,29 +23,39 @@ def best_score(system, new_features, saved_features):
 
     return max(scores)
 
-def identify(face_file, voice_file):
+
+def identify(face_file, voice_file, threshold=0.7, strategy="weighted"):
     """
     Identyfikacja 1:N — bierze nowe zdjecie i nagranie,
     porownuje ze wszystkimi uzytkownikami w bazie i mowi kto to jest.
     """
+    if not os.path.isfile(face_file):
+        raise FileNotFoundError(f"Nie znaleziono pliku ze zdjeciem: {face_file}")
+    if not os.path.isfile(voice_file):
+        raise FileNotFoundError(f"Nie znaleziono pliku z nagraniem: {voice_file}")
+
     print("=== System Multimodalny MultiVerify ===\n")
     print(f"Nowe zdjecie:   {face_file}")
-    print(f"Nowe nagranie:  {voice_file}\n")
+    print(f"Nowe nagranie:  {voice_file}")
+    print(f"Strategia fuzji: {strategy}, prog: {threshold}\n")
 
     face_system = FaceModality()
     voice_system = VoiceModality()
-    fusion_system = FusionEngine(face_weight=0.6, voice_weight=0.4, threshold=0.7)
+    fusion_system = FusionEngine(
+        face_weight=0.6,
+        voice_weight=0.4,
+        threshold=threshold,
+        strategy=strategy,
+    )
 
-    # Wyciagamy cechy z nowych danych (osoba probujaca sie zalogowac)
     new_face_features = face_system.extract_features(face_file)
     new_voice_features = voice_system.extract_features(voice_file)
 
-    # Przechodzimy po wszystkich uzytkownikach w bazie
     users = [name for name in os.listdir(USERS_DIR) if os.path.isdir(os.path.join(USERS_DIR, name))]
 
     if len(users) == 0:
         print("Baza uzytkownikow jest pusta! Najpierw zarejestruj kogos (register.py).")
-        return
+        return None
 
     print(f"Porownuje z {len(users)} uzytkownikami w bazie...\n")
 
@@ -51,7 +64,6 @@ def identify(face_file, voice_file):
     for username in users:
         user_dir = os.path.join(USERS_DIR, username)
 
-        # Szukamy zapisanych embeddingow, a jesli ich nie ma to plikow z danymi
         face_embeddings_path = os.path.join(user_dir, "face_embeddings.npy")
         voice_embeddings_path = os.path.join(user_dir, "voice_embeddings.npy")
 
@@ -84,7 +96,6 @@ def identify(face_file, voice_file):
         else:
             voice_score = 0.0
 
-        # Fuzja wynikow
         fusion_result = fusion_system.fuse(face_score, voice_score)
 
         results.append({
@@ -92,14 +103,13 @@ def identify(face_file, voice_file):
             "face_score": face_score,
             "voice_score": voice_score,
             "final_score": fusion_result["final_score"],
-            "access_granted": fusion_result["access_granted"]
+            "access_granted": fusion_result["access_granted"],
         })
 
         print(f"  {username}: twarz={face_score:.2f}, glos={voice_score:.2f}, "
               f"fuzja={fusion_result['final_score']:.4f} "
               f"{'-> DOPASOWANIE' if fusion_result['access_granted'] else ''}")
 
-    # Szukamy najlepszego dopasowania
     best_match = max(results, key=lambda r: r["final_score"])
 
     print("\n=== WYNIK IDENTYFIKACJI ===")
@@ -114,9 +124,40 @@ def identify(face_file, voice_file):
     return best_match
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="MultiVerify — multimodalna identyfikacja uzytkownika (twarz + glos)"
+    )
+    parser.add_argument(
+        "--face",
+        required=True,
+        help="Sciezka do zdjecia probe (np. data/users/kacper/face_3.jpg)",
+    )
+    parser.add_argument(
+        "--voice",
+        required=True,
+        help="Sciezka do nagrania probe (np. data/users/kacper/voice_3.mp3)",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.7,
+        help="Prog akceptacji (domyslnie: 0.7)",
+    )
+    parser.add_argument(
+        "--strategy",
+        choices=FusionEngine.STRATEGIES,
+        default="weighted",
+        help="Strategia fuzji: weighted (suma wazona) lub and (obie modalnosci musza przejsc prog)",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    # Przykladowe pliki wejsciowe (na etapie stubbow nie musza istniec)
+    args = parse_args()
     identify(
-        face_file="nowe_zdjecie.jpg",
-        voice_file="nowe_nagranie.wav"
+        face_file=args.face,
+        voice_file=args.voice,
+        threshold=args.threshold,
+        strategy=args.strategy,
     )

@@ -1,0 +1,62 @@
+\chapter{Zastosowane metody i algorytmy}
+\label{cha:metody}
+
+\section{Podobieństwo cosinusowe}
+
+Dla dwóch wektorów cech $\mathbf{a}$ i $\mathbf{b}$ stosowany jest współczynnik podobieństwa cosinusowego:
+\begin{equation}
+    \mathrm{sim}(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\| \cdot \|\mathbf{b}\|},
+    \label{eq:cosine}
+\end{equation}
+z obcięciem wyniku do przedziału $[0, 1]$. Metoda ta jest stosowana zarówno w module twarzy, jak i głosu.
+
+\section{Modalność twarzy (DeepFace / Facenet)}
+
+\subsection{Ekstrakcja cech}
+
+Moduł twarzy korzysta z biblioteki DeepFace~\cite{serengil2020deepface}, która udostępnia gotowe modele głębokiego uczenia. W projekcie zastosowano model \textbf{Facenet}~\cite{schroff2015facenet}, zwracający embedding o wymiarze 128.
+
+Funkcja \texttt{DeepFace.represent} przetwarza obraz wejściowy i zwraca wektor liczb rzeczywistych reprezentujący tożsamość twarzy w przestrzeni metrycznej.
+
+\subsection{Uzasadnienie wyboru}
+
+Facenet zapewnia dobrą jakość rozpoznawania przy relatywnie niskim wysiłku implementacyjnym (brak trenowania własnej sieci). DeepFace upraszcza integrację z projektem demonstracyjnym.
+
+\section{Modalność głosu (MFCC)}
+
+\subsection{Ekstrakcja cech}
+
+Współczynniki MFCC (\emph{Mel-Frequency Cepstral Coefficients}) są standardowym opisem krótkoczasowej energii widma mowy~\cite{davis1980comparison}. Dla sygnału audio obliczana jest macierz MFCC o wymiarze $13 \times T$ (liczba ramek czasowych $T$), a następnie dla każdego współczynnika wyznaczane są:
+\begin{itemize}
+    \item średnia wzdłuż osi czasu,
+    \item odchylenie standardowe wzdłuż osi czasu.
+\end{itemize}
+
+Wektor cech głosu ma wymiar $26$ (13 średnich + 13 odchyleń). Implementacja wykorzystuje bibliotekę librosa~\cite{librosa2024}.
+
+\subsection{Uzasadnienie wyboru}
+
+MFCC charakteryzuje się niskim kosztem obliczeniowym i przejrzystością, co ułatwia analizę w projekcie akademickim. Jednocześnie pozwala zestawić podejście klasyczne (głos) z głębokim (twarz) w systemie multimodalnym.
+
+\section{Fuzja wyników (late fusion)}
+
+\subsection{Suma ważona}
+
+W strategii \texttt{weighted} wynik końcowy obliczany jest jako:
+\begin{equation}
+    S = w_f \cdot s_f + w_v \cdot s_v,
+    \label{eq:fusion}
+\end{equation}
+gdzie $s_f$ i $s_v$ to wyniki podobieństwa twarzy i głosu, a $w_f + w_v = 1$. Dostęp przyznawany jest, gdy $S \geq \tau$.
+
+\subsection{Reguła AND}
+
+W strategii \texttt{and} decyzja pozytywna wymaga spełnienia obu warunków:
+\begin{equation}
+    s_f \geq \tau \quad \land \quad s_v \geq \tau.
+\end{equation}
+Wynik rankingowy ustawiano na $S = \min(s_f, s_v)$, co ogranicza fałszywe akceptacje przy dominacji jednej, zawyżonej modalności.
+
+\subsection{Uzasadnienie fuzji}
+
+Fuzja na poziomie decyzji (late fusion) jest prostsza w implementacji niż łączenie wektorów cech (early fusion) i umożliwia bezpośrednie porównanie wkładu każdej modalności~\cite{ross2006multimodal}.

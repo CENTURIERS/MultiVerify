@@ -218,10 +218,24 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Biometrics project data (large media files)
-data/users/**/*.jpg
-data/users/**/*.png
-data/users/**/*.wav
-data/users/**/*.mp3
-data/users/**/*.npy
+# Biometric user data — ignore media and embeddings, keep folder structure (.gitkeep)
+data/users/**/*
+!data/users/**/
+!data/users/**/.gitkeep
+data/users/**/*.zip
+data/users/**/*.rar
+data/users/**/*.7z
+
+# LaTeX build artifacts (keep .tex, .bib, .cls, figures, praca.pdf)
+docs/latex/**/*.aux
+docs/latex/**/*.log
+docs/latex/**/*.out
+docs/latex/**/*.toc
+docs/latex/**/*.bbl
+docs/latex/**/*.blg
+docs/latex/**/*.lof
+docs/latex/**/*.lol
+docs/latex/**/*.fdb_latexmk
+docs/latex/**/*.fls
+docs/latex/**/*.synctex.gz
 
