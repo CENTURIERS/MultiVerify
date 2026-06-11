@@ -3,7 +3,7 @@
 
 \section{Konfiguracja eksperymentu}
 
-Testy przeprowadzono na bazie czterech użytkowników zarejestrowanych w systemie. Dla każdej osoby wykorzystano trzy zdjęcia twarzy i trzy nagrania głosu. Jako dane probe przyjmowano pliki trzeciej próbki (\texttt{face\_3}, \texttt{voice\_3}).
+Testy przeprowadzono na bazie czterech użytkowników zarejestrowanych w systemie. Dla każdej osoby wykorzystano trzy zdjęcia twarzy i trzy nagrania głosu. Jako dane próbne przyjmowano pliki trzeciej próbki (\texttt{face\_3}, \texttt{voice\_3}).
 
 Porównano warianty:
 \begin{itemize}
@@ -16,24 +16,24 @@ Skrypt \texttt{scripts/run\_experiments.py} generuje plik \texttt{docs/experimen
 
 \section{Przykład identyfikacji}
 
-Tabela~\ref{tab:probe_kacper} przedstawia wyniki identyfikacji dla probe użytkownika \texttt{kacper} (strategia \texttt{weighted}, $\tau = 0{,}7$).
+Tabela~\ref{tab:probe_kacper} przedstawia wyniki identyfikacji dla danych próbnych użytkownika Kacper (strategia \texttt{weighted}, $\tau = 0{,}7$).
 
 \begin{table}[H]
     \centering
-    \caption{Wyniki identyfikacji --- probe użytkownika kacper.\label{tab:probe_kacper}}
+    \caption{Wyniki identyfikacji --- dane próbne użytkownika Kacper.\label{tab:probe_kacper}}
     \begin{tabular}{lccc}
         \toprule
         Użytkownik & Twarz & Głos & Fuzja \\
         \midrule
-        kacper  & 1{,}00 & 1{,}00 & 1{,}0000 \\
-        kamil   & 0{,}53 & 0{,}98 & 0{,}7115 \\
-        krystian & 0{,}15 & 0{,}98 & 0{,}4829 \\
-        marcel  & 0{,}17 & 0{,}97 & 0{,}4880 \\
+        Kacper   & 1{,}00 & 1{,}00 & 1{,}0000 \\
+        Kamil    & 0{,}53 & 0{,}98 & 0{,}7115 \\
+        Krystian & 0{,}15 & 0{,}98 & 0{,}4829 \\
+        Marcel   & 0{,}17 & 0{,}97 & 0{,}4880 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-System poprawnie wskazał użytkownika \texttt{kacper} jako najlepsze dopasowanie. Jednocześnie zauważono wysokie podobieństwo głosu dla użytkowników obcych (np.\ \texttt{kamil}: 0{,}98), co wynika z ograniczeń MFCC.
+System poprawnie wskazał użytkownika Kacper jako najlepsze dopasowanie. Jednocześnie zauważono wysokie podobieństwo głosu dla użytkowników obcych (np.\ Kamil: 0{,}98), co wynika z ograniczeń MFCC.
 
 \section{Analiza wyników}
 
@@ -43,11 +43,11 @@ Moduł oparty na Facenet zapewnił wyraźną separację tożsamości --- wyniki 
 
 \subsection{Modalność głosu}
 
-Wyniki głosu dla różnych użytkowników były wysokie (często $> 0{,}9$), nawet gdy mówca był inny. Potwierdza to, że proste MFCC bez modelu rozpoznawania mówcy słabo rozróżnia tożsamości w małej grupie mówców męskich o podobnych nagraniach.
+Wyniki głosu dla różnych użytkowników były wysokie (często powyżej 0{,}9), nawet gdy mówca był inny. Potwierdza to, że proste MFCC bez modelu rozpoznawania mówcy słabo rozróżnia tożsamości w małej grupie mówców o podobnych nagraniach.
 
 \subsection{Fuzja multimodalna}
 
-Fuzja 60/40 pozwoliła zachować wysoki wynik dla prawdziwego użytkownika (1{,}0) i jednocześnie wykorzystać niski wynik twarzy przy odrzucaniu obcych w niektórych przypadkach. Strategia \texttt{and} dodatkowo ogranicza fałszywe akceptacje wymagając progu w obu modalnościach.
+Fuzja 60/40 pozwoliła zachować wysoki wynik dla prawdziwego użytkownika (1{,}0) i jednocześnie wykorzystać niski wynik twarzy przy odrzucaniu obcych w niektórych przypadkach. Strategia \texttt{and} dodatkowo ogranicza fałszywe akceptacje, wymagając progu w obu modalnościach.
 
 \subsection{Wpływ progu}
 
@@ -65,15 +65,15 @@ Podniesienie progu $\tau$ (np.\ do 0{,}85) zmniejsza FAR kosztem wzrostu FRR. Wy
 \subsection{Zagrożenia}
 
 \begin{itemize}
-    \item \textbf{Atak prezentacji (spoofing)} --- użycie zdjęcia zamiast żywej twarzy; system nie zawiera detekcji żywotności (liveness).
+    \item \textbf{Atak prezentacji (spoofing)} --- użycie zdjęcia zamiast żywej twarzy; system nie zawiera detekcji żywotności.
     \item \textbf{Replay głosu} --- odtworzenie nagrania; MFCC nie rozróżnia autentycznej mowy od nagrania.
-    \item \textbf{Atak jedną modalnością} --- przy dominacji słabej modalności głosu impostor może uzyskać wynik powyżej progu (np.\ kamil: fuzja 0{,}71 przy probe kacpera).
+    \item \textbf{Atak jedną modalnością} --- przy dominacji słabej modalności głosu impostor może uzyskać wynik powyżej progu (np.\ dla Kamila: fuzja 0{,}71 przy próbie identyfikacji Kacpra).
     \item \textbf{Jakość danych} --- uszkodzone pliki MP3 mogą uniemożliwić rejestrację.
 \end{itemize}
 
 \subsection{Środki zaradcze}
 
-Zastosowano m.in.: fuzję dwóch modalności, regułę AND, konfigurowalny próg, walidację istnienia plików wejściowych. W środowisku produkcyjnym zalecałoby się modele anty-spoofing, silniejszy model głosu oraz weryfikację 1:1 zamiast samego rankingu 1:N.
+Zastosowano m.in.: fuzję dwóch modalności, regułę AND, konfigurowalny próg oraz walidację istnienia plików wejściowych. W środowisku produkcyjnym zalecałoby się modele anty-spoofing, silniejszy model głosu oraz weryfikację 1:1 zamiast samego rankingu 1:N.
 
 \section{Podsumowanie eksperymentów}
 
